@@ -6,7 +6,7 @@
 
     <!-- 统计卡片区域 -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="p-6 rounded-lg shadow-md transition-colors duration-300"
+      <div class="p-6 rounded-lg shadow-sm transition-colors duration-300"
         :class="[isDarkMode ? 'bg-gray-800 bg-opacity-70' : 'bg-white']">
         <div class="flex items-center justify-between">
           <div>
@@ -29,7 +29,7 @@
         </p>
       </div>
 
-      <div class="p-6 rounded-lg shadow-md transition-colors duration-300"
+      <div class="p-6 rounded-lg shadow-sm transition-colors duration-300"
         :class="[isDarkMode ? 'bg-gray-800 bg-opacity-70' : 'bg-white']">
         <div class="flex items-center justify-between">
           <div>
@@ -53,7 +53,7 @@
         </p>
       </div>
 
-      <div class="p-6 rounded-lg shadow-md transition-colors duration-300"
+      <div class="p-6 rounded-lg shadow-sm transition-colors duration-300"
         :class="[isDarkMode ? 'bg-gray-800 bg-opacity-70' : 'bg-white']">
         <div class="flex items-center justify-between">
           <div>
@@ -74,7 +74,7 @@
         </p>
       </div>
 
-      <div class="p-6 rounded-lg shadow-md transition-colors duration-300"
+      <div class="p-6 rounded-lg shadow-sm transition-colors duration-300"
         :class="[isDarkMode ? 'bg-gray-800 bg-opacity-70' : 'bg-white']">
         <div class="flex items-center justify-between">
           <div>

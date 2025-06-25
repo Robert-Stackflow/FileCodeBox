@@ -21,7 +21,9 @@ async def delete_expire_files():
         try:
             # 遍历 share目录下的所有文件夹，删除空的文件夹，并判断父目录是否为空，如果为空也删除
             if settings.file_storage == "local":
-                for root, dirs, files in os.walk(f"{data_root}/share/data"):
+                storage_path = settings.storage_path.strip("/")
+                base_dir = storage_path if storage_path else "share/data"
+                for root, dirs, files in os.walk(f"{data_root}/{base_dir}"):
                     if not dirs and not files:
                         os.rmdir(root)
             await ip_limit["error"].remove_expired_ip()

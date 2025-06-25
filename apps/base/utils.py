@@ -9,7 +9,12 @@ from typing import Optional, Tuple
 from apps.base.dependencies import IPRateLimit
 from apps.base.models import FileCodes
 from core.settings import settings
-from core.utils import get_random_num, get_random_string, max_save_times_desc, sanitize_filename
+from core.utils import (
+    get_random_num,
+    get_random_string,
+    max_save_times_desc,
+    sanitize_filename,
+)
 
 
 async def get_file_path_name(file: UploadFile) -> Tuple[str, str, str, str, str]:
@@ -18,11 +23,9 @@ async def get_file_path_name(file: UploadFile) -> Tuple[str, str, str, str, str]
     storage_path = settings.storage_path.strip("/")  # 移除开头和结尾的斜杠
     file_uuid = uuid.uuid4().hex
     filename = await sanitize_filename(file.filename)
+    base_dir = storage_path if storage_path else "share/data"
     # 使用 UUID 作为子目录名
-    base_path = f"share/data/{today.strftime('%Y/%m/%d')}/{file_uuid}"
-
-    # 如果设置了存储路径，将其添加到基础路径中
-    path = f"{storage_path}/{base_path}" if storage_path else base_path
+    path = f"{base_dir}/{today.strftime('%Y/%m/%d')}/{file_uuid}"
 
     prefix, suffix = os.path.splitext(filename)
     # 保持原始文件名
@@ -30,19 +33,21 @@ async def get_file_path_name(file: UploadFile) -> Tuple[str, str, str, str, str]
     return path, suffix, prefix, filename, save_path
 
 
-async def get_chunk_file_path_name(file_name: str, upload_id: str) -> Tuple[str, str, str, str, str]:
+async def get_chunk_file_path_name(
+    file_name: str, upload_id: str
+) -> Tuple[str, str, str, str, str]:
     """获取切片文件的路径和文件名"""
     today = datetime.datetime.now()
     storage_path = settings.storage_path.strip("/")  # 移除开头和结尾的斜杠
-    base_path = f"share/data/{today.strftime('%Y/%m/%d')}/{upload_id}"
-    path = f"{storage_path}/{base_path}" if storage_path else base_path
+    base_dir = storage_path if storage_path else "share/data"
+    path = f"{base_dir}/{today.strftime('%Y/%m/%d')}/{upload_id}"
     prefix, suffix = os.path.splitext(file_name)
     save_path = f"{path}/{prefix}{suffix}"
     return path, suffix, prefix, file_name, save_path
 
 
 async def get_expire_info(
-        expire_value: int, expire_style: str
+    expire_value: int, expire_style: str
 ) -> Tuple[Optional[datetime.datetime], int, int, str]:
     """获取过期信息"""
     expired_count, used_count = -1, 0

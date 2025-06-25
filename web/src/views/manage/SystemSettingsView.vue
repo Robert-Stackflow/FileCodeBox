@@ -187,7 +187,7 @@ refreshData()
       系统设置
     </h2>
 
-    <div class="rounded-lg shadow-md p-6" :class="[isDarkMode ? 'bg-gray-800 bg-opacity-70' : 'bg-white']">
+    <div class="rounded-lg shadow-sm p-6" :class="[isDarkMode ? 'bg-gray-800 bg-opacity-70' : 'bg-white']">
       <!-- 基本设置 -->
       <section class="space-y-4">
         <h3 class="text-lg font-bold mb-4" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">

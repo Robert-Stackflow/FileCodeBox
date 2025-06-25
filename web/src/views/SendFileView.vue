@@ -21,13 +21,13 @@
               'px-4 py-2 rounded-lg',
               sendType === 'file' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300'
             ]">
-              发送文件
+              投喂文件
             </button>
             <button type="button" @click="sendType = 'text'" :class="[
               'px-4 py-2 rounded-lg',
               sendType === 'text' ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-300'
             ]">
-              发送文本
+              投喂文本
             </button>
             <!-- <button
               type="button"
@@ -68,11 +68,11 @@
                     : 'text-gray-600 group-hover:text-indigo-600'
                 ]">
                   <span class="block truncate">
-                    {{ selectedFile ? selectedFile.name : '点击或拖放文件到此处上传' }}
+                    {{ selectedFile ? selectedFile.name : '点击或拖放文件到此处投喂' }}
                   </span>
                 </p>
                 <p :class="['mt-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                  支持各种常见格式，最大{{ getStorageUnit(config.uploadSize) }}
+                  支持各种常见格式，最大只能投喂{{ getStorageUnit(config.uploadSize) }}喔
                 </p>
               </div>
             </div>
@@ -84,7 +84,7 @@
                   isDarkMode
                     ? 'bg-gray-800 bg-opacity-50 text-white'
                     : 'bg-white text-gray-900 border border-gray-300'
-                ]" placeholder="在此输入要发送的文本..."></textarea>
+                ]" placeholder="在此输入要投喂的文本..."></textarea>
               </div>
             </div>
           </transition>
@@ -142,8 +142,8 @@
                     ? 'text-gray-100 border-gray-700/50 focus:ring-indigo-500/70 bg-gray-800/50'
                     : 'text-gray-900 border-gray-200 focus:ring-indigo-500/50 bg-white'
                 ]" :style="[
-                    expirationMethod === 'forever' ? 'border-radius: 0.75rem;' : 'border-top-right-radius: 0.75rem;border-bottom-right-radius: 0.75rem;',
-                  ]">
+                  expirationMethod === 'forever' ? 'border-radius: 0.75rem;' : 'border-top-right-radius: 0.75rem;border-bottom-right-radius: 0.75rem;',
+                ]">
                   <option v-for="item in config.expireStyle" :value="item" :key="item"
                     :class="[isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900']">
                     {{ getUnit(item) }}
@@ -169,13 +169,13 @@
               class="absolute top-0 left-0 w-full h-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
             <span class="relative z-10 flex items-center justify-center text-lg">
               <SendIcon class="w-6 h-6 mr-2" />
-              <span>安全寄送</span>
+              <span>开始投喂</span>
             </span>
           </button>
         </form>
         <div class="mt-6 text-center">
           <router-link to="/" class="text-indigo-400 hover:text-indigo-300 transition duration-300">
-            需要取件？点击这里
+            需要领粮？点击这里
           </router-link>
         </div>
       </div>
@@ -188,7 +188,7 @@
         </span>
         <button @click="toggleDrawer" class="text-sm hover:text-indigo-300 transition duration-300 flex items-center"
           :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']">
-          发件记录
+          投喂记录
           <ClipboardListIcon class="w-4 h-4 ml-1" />
         </button>
       </div>
@@ -202,7 +202,7 @@
         <div class="flex justify-between items-center p-6 border-b"
           :class="[isDarkMode ? 'border-gray-700' : 'border-gray-200']">
           <h3 class="text-2xl font-bold" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
-            发件记录
+            投喂记录
           </h3>
           <button @click="toggleDrawer" class="hover:text-white transition duration-300"
             :class="[isDarkMode ? 'text-gray-400' : 'text-gray-800']">
@@ -212,7 +212,7 @@
         <div class="flex-grow overflow-y-auto p-6">
           <transition-group name="list" tag="div" class="space-y-4">
             <div v-for="record in sendRecords" :key="record.id"
-              class="bg-opacity-50 rounded-lg p-4 flex items-center shadow-md hover:shadow-lg transition duration-300 transform hover:scale-102"
+              class="bg-opacity-50 rounded-lg p-4 flex items-center shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-102"
               :class="[isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-white']">
               <div class="flex-shrink-0 mr-4">
                 <FileIcon class="w-10 h-10" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
@@ -266,7 +266,7 @@
           <div class="px-4 sm:px-6 py-3 sm:py-4 border-b" :class="[isDarkMode ? 'border-gray-800' : 'border-gray-100']">
             <div class="flex items-center justify-between">
               <h3 class="text-lg sm:text-xl font-semibold" :class="[isDarkMode ? 'text-white' : 'text-gray-900']">
-                文件详情
+                投喂详情
               </h3>
               <button @click="selectedRecord = null"
                 class="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -279,7 +279,7 @@
           <div class="p-4 sm:p-6">
             <!-- 文件信息卡片 -->
             <div class="rounded-xl p-3 sm:p-4 mb-4 sm:mb-6"
-              :class="[isDarkMode ? 'bg-gray-800 bg-opacity-50' : 'bg-gray-50 bg-opacity-95']">
+              :class="[isDarkMode ? 'bg-gray-800 bg-opacity-50' : 'bg-gray-200 bg-opacity-50']">
               <div class="flex items-center mb-3 sm:mb-4">
                 <div class="p-2 sm:p-3 rounded-lg" :class="[isDarkMode ? 'bg-gray-800' : 'bg-white']">
                   <FileIcon v-if="selectedRecord.type === 'file'" class="w-5 h-5 sm:w-6 sm:h-6"
@@ -318,8 +318,9 @@
             <!-- 取件码和二维码区域 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <!-- 左侧取件码 -->
-              <div class="space-y-3 sm:space-y-4">
-                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 sm:p-5 text-white">
+              <div class="space-y-4 sm:space-y-4">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 sm:p-5 text-white"
+                  :class="{ 'w-full': selectedRecord.type !== 'file' }">
                   <div class="flex items-center justify-between mb-3 sm:mb-4">
                     <h4 class="font-medium text-sm sm:text-base">取件码</h4>
                     <button @click="copyRetrieveCode(selectedRecord.retrieveCode)"
@@ -333,29 +334,30 @@
                 </div>
 
                 <div class="rounded-xl p-3 sm:p-4"
-                  :class="[isDarkMode ? 'bg-gray-800 bg-opacity-50' : 'bg-gray-50 bg-opacity-95']">
+                  :class="[isDarkMode ? 'bg-gray-800 bg-opacity-50' : 'bg-gray-200 bg-opacity-50']">
                   <div class="flex items-center justify-between mb-2 sm:mb-3">
                     <h4 class="font-medium text-sm sm:text-base flex items-center min-w-0"
                       :class="[isDarkMode ? 'text-white' : 'text-gray-900']">
                       <TerminalIcon class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 text-indigo-500 flex-shrink-0" />
-                      <span class="truncate">wget下载</span>
+                      <span class="truncate">{{ selectedRecord.type === 'file' ? "wget下载" : "复制文本" }}</span>
                     </h4>
-                    <button @click="copyWgetCommand(selectedRecord.retrieveCode, selectedRecord.filename)"
+                    <button
+                      @click="selectedRecord.type === 'file' ? copyWgetCommand(selectedRecord.retrieveCode, selectedRecord.filename) : copyTextCommand(selectedRecord.text)"
                       class="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0">
                       <ClipboardCopyIcon class="w-4 h-4 sm:w-5 sm:h-5"
-                        :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500']" name="点击复制wget命令" />
+                        :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500']" />
                     </button>
                   </div>
                   <p class="text-xs sm:text-sm font-mono break-all line-clamp-2"
                     :class="[isDarkMode ? 'text-gray-300' : 'text-gray-600']">
-                    点击复制wget命令
+                    {{ selectedRecord.type === 'file' ? "点击复制wget命令" : "点击复制文本内容" }}
                   </p>
                 </div>
               </div>
 
               <!-- 右侧二维码 -->
               <div class="rounded-xl p-4 sm:p-5 flex flex-col items-center"
-                :class="[isDarkMode ? 'bg-gray-800 bg-opacity-50' : 'bg-gray-50 bg-opacity-95']">
+                :class="[isDarkMode ? 'bg-gray-800 bg-opacity-50' : 'bg-gray-200 bg-opacity-50']">
                 <div class="bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-3 sm:mb-4">
                   <QRCode :value="getQRCodeValue(selectedRecord)" :size="140" level="M"
                     class="sm:w-[160px] sm:h-[160px]" />
@@ -402,7 +404,7 @@ import BorderProgressBar from '@/components/common/BorderProgressBar.vue'
 import QRCode from 'qrcode.vue'
 import { useFileDataStore } from '@/stores/fileData'
 import api from '@/utils/api'
-import { copyRetrieveLink, copyRetrieveCode, copyWgetCommand } from '@/utils/clipboard'
+import { copyRetrieveLink, copyRetrieveCode, copyWgetCommand, copyTextCommand } from '@/utils/clipboard'
 import { getStorageUnit } from '@/utils/convert'
 
 const config: any = JSON.parse(localStorage.getItem('config') || '{}')
@@ -769,6 +771,7 @@ const handleSubmit = async () => {
         id: Date.now(),
         type: sendType.value,
         filename: fileName,
+        text: sendType.value === 'text' ? textContent.value : '',
         date: new Date().toISOString().split('T')[0],
         size:
           sendType.value === 'text'
@@ -915,5 +918,9 @@ select option:hover {
 
 .dark select option:hover {
   background-color: rgb(99 102 241 / 0.2);
+}
+
+.shadow-sm {
+  box-shadow: none !important;
 }
 </style>

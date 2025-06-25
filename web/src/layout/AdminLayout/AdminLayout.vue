@@ -53,7 +53,7 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-h-screen">
       <!-- Header -->
-      <header class="shadow-md border-b transition-colors duration-300"
+      <header class="shadow-sm border-b transition-colors duration-300"
         :class="[isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
         <div class="flex items-center justify-between h-16 px-4">
           <button @click="toggleSidebar" class="lg:hidden">

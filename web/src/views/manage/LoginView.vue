@@ -33,12 +33,12 @@
       </div>
       <form class="mt-8" @submit.prevent="handleSubmit">
         <input type="hidden" name="remember" value="true" />
-        <div class="rounded-md shadow-sm -space-y-px">
+        <div class="rounded-md shadow-sm -space-y-px" style="margin-bottom: 20px;">
           <div>
             <label for="password" class="sr-only">密码</label>
             <input id="password" name="password" type="password" autocomplete="current-password" required
               v-model="password" :class="[
-                'appearance-none rounded-t-md relative block w-full px-4 py-3 border transition-all duration-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:z-10 sm:text-sm backdrop-blur-sm',
+                'appearance-none rounded-md relative block w-full px-4 py-3 border transition-all duration-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 focus:z-10 sm:text-sm backdrop-blur-sm',
                 isDarkMode
                   ? 'bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 hover:border-gray-500'
                   : 'bg-white/50 border-gray-300 text-gray-900 hover:border-gray-400'

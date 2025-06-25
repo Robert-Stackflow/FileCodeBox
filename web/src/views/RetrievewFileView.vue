@@ -46,7 +46,7 @@
               class="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-300 transform hover:scale-105 hover:shadow-lg relative overflow-hidden group"
               :disabled="inputStatus.loading">
               <span class="flex items-center justify-center relative z-10">
-                <span>{{ inputStatus.loading ? '处理中...' : '提取文件' }}</span>
+                <span>{{ inputStatus.loading ? '处理中...' : '马上领粮' }}</span>
                 <ArrowRightIcon
                   class="w-5 h-5 ml-2 transition-transform duration-300 transform group-hover:translate-x-1" />
               </span>
@@ -57,7 +57,7 @@
 
           <div class="mt-6 text-center">
             <router-link to="/send" class="text-indigo-400 hover:text-indigo-300 transition duration-300">
-              需要发送文件？点击这里
+              需要投喂？点击这里
             </router-link>
           </div>
         </div>
@@ -69,7 +69,7 @@
           </span>
           <button @click="toggleDrawer" class="text-sm hover:text-indigo-300 transition duration-300 flex items-center"
             :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']">
-            取件记录
+            领粮记录
             <ClipboardListIcon class="w-4 h-4 ml-1" />
           </button>
         </div>
@@ -83,7 +83,7 @@
         <div class="flex justify-between items-center p-6 border-b"
           :class="[isDarkMode ? 'border-gray-700' : 'border-gray-200']">
           <h3 class="text-2xl font-bold" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
-            取件记录
+            领粮记录
           </h3>
           <button @click="toggleDrawer" class="hover:text-white transition duration-300"
             :class="[isDarkMode ? 'text-gray-400' : 'text-gray-800']">
@@ -93,7 +93,7 @@
         <div class="flex-grow overflow-y-auto p-6">
           <transition-group name="list" tag="div" class="space-y-4">
             <div v-for="record in records" :key="record.id"
-              class="bg-opacity-50 rounded-lg p-4 flex items-center shadow-md hover:shadow-lg transition duration-300 transform hover:scale-102"
+              class="bg-opacity-50 rounded-lg p-4 flex items-center shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-102"
               :class="[isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-white']">
               <div class="flex-shrink-0 mr-4">
                 <FileIcon class="w-10 h-10" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
@@ -146,7 +146,7 @@
               : 'bg-white bg-opacity-95'
           ]">
           <h3 class="text-2xl font-bold mb-6 truncate" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
-            文件详情
+            粮食详情
           </h3>
           <div class="space-y-4">
             <div class="flex items-center">
@@ -194,7 +194,7 @@
             <h4 class="text-lg font-semibold mb-3" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
               取件二维码
             </h4>
-            <div class="bg-white p-2 rounded-lg shadow-md">
+            <div class="bg-white p-2 rounded-lg shadow-sm">
               <QRCode :value="getQRCodeValue(selectedRecord)" :size="128" level="M" />
             </div>
             <p class="mt-2 text-sm" :class="[isDarkMode ? 'text-gray-400' : 'text-gray-600']">

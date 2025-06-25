@@ -12,7 +12,7 @@ if not data_root.exists():
 
 DEFAULT_CONFIG = {
     "file_storage": "local",
-    "storage_path": "",
+    "storage_path": "share/data",
     "name": "Chewie Transfer",
     "description": "开箱即用的文件快传系统",
     "notify_title": "系统通知",
