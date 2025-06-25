@@ -74,6 +74,7 @@ async def share_file(
     path, suffix, prefix, uuid_file_name, save_path = await get_file_path_name(file)
 
     file_storage: FileStorageInterface = storages[settings.file_storage]()
+
     await file_storage.save_file(file, save_path)
 
     await create_file_code(

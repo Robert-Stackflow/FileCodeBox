@@ -66,7 +66,14 @@ class FileStorageInterface:
         """
         raise NotImplementedError
 
-    async def save_chunk(self, upload_id: str, chunk_index: int, chunk_data: bytes, chunk_hash: str, save_path: str):
+    async def save_chunk(
+        self,
+        upload_id: str,
+        chunk_index: int,
+        chunk_data: bytes,
+        chunk_hash: str,
+        save_path: str,
+    ):
         """
         保存分片文件
         :param upload_id: 上传会话ID
@@ -77,7 +84,9 @@ class FileStorageInterface:
         """
         raise NotImplementedError
 
-    async def merge_chunks(self, upload_id: str, chunk_info: UploadChunk, save_path: str) -> tuple[str, str]:
+    async def merge_chunks(
+        self, upload_id: str, chunk_info: UploadChunk, save_path: str
+    ) -> tuple[str, str]:
         """
         合并分片文件并返回文件路径和完整哈希值
         :param upload_id: 上传会话ID
@@ -133,15 +142,22 @@ class SystemFileStorage(FileStorageInterface):
         if not file_path.exists():
             return APIResponse(code=404, detail="文件已过期删除")
         filename = f"{file_code.prefix}{file_code.suffix}"
-        encoded_filename = quote(filename, safe='')
+        encoded_filename = quote(filename, safe="")
         content_disposition = f"attachment; filename*=UTF-8''{encoded_filename}"
         return FileResponse(
             file_path,
             headers={"Content-Disposition": content_disposition},
-            filename=filename  # 保留原始文件名以备某些场景使用
+            filename=filename,  # 保留原始文件名以备某些场景使用
         )
 
-    async def save_chunk(self, upload_id: str, chunk_index: int, chunk_data: bytes, chunk_hash: str, save_path: str):
+    async def save_chunk(
+        self,
+        upload_id: str,
+        chunk_index: int,
+        chunk_data: bytes,
+        chunk_hash: str,
+        save_path: str,
+    ):
         """
         保存分片文件到本地文件系统
         :param upload_id: 上传会话ID
@@ -151,13 +167,15 @@ class SystemFileStorage(FileStorageInterface):
         :param save_path: 文件保存路径
         """
         chunk_dir = self.root_path / save_path
-        chunk_path = chunk_dir.parent / 'chunks' / f"{chunk_index}.part"
+        chunk_path = chunk_dir.parent / "chunks" / f"{chunk_index}.part"
         if not chunk_path.parent.exists():
             chunk_path.parent.mkdir(parents=True)
         async with aiofiles.open(chunk_path, "wb") as f:
             await f.write(chunk_data)
 
-    async def merge_chunks(self, upload_id: str, chunk_info: UploadChunk, save_path: str) -> tuple[str, str]:
+    async def merge_chunks(
+        self, upload_id: str, chunk_info: UploadChunk, save_path: str
+    ) -> tuple[str, str]:
         """
         合并本地文件系统的分片文件并返回文件路径和完整哈希值
         :param upload_id: 上传会话ID
@@ -172,7 +190,7 @@ class SystemFileStorage(FileStorageInterface):
             for i in range(chunk_info.total_chunks):
                 # 获取分片记录
                 chunk_record = await UploadChunk.get(upload_id=upload_id, chunk_index=i)
-                chunk_path = output_dir.parent / 'chunks' / f"{i}.part"
+                chunk_path = output_dir.parent / "chunks" / f"{i}.part"
                 async with aiofiles.open(chunk_path, "rb") as in_file:
                     chunk_data = await in_file.read()
                     current_hash = hashlib.sha256(chunk_data).hexdigest()
@@ -188,7 +206,7 @@ class SystemFileStorage(FileStorageInterface):
         :param upload_id: 上传会话ID
         :param save_path: 文件保存路径
         """
-        chunk_dir = (self.root_path / save_path).parent / 'chunks'
+        chunk_dir = (self.root_path / save_path).parent / "chunks"
         if chunk_dir.exists():
             shutil.rmtree(chunk_dir)
 
@@ -202,6 +220,7 @@ class S3FileStorage(FileStorageInterface):
         self.region_name = settings.s3_region_name
         self.signature_version = settings.s3_signature_version
         self.endpoint_url = settings.s3_endpoint_url or f"https://{self.s3_hostname}"
+        self.s3_cdn_url = settings.s3_cdn_url
         self.aws_session_token = settings.aws_session_token
         self.proxy = settings.s3_proxy
         self.session = aioboto3.Session(
@@ -216,11 +235,14 @@ class S3FileStorage(FileStorageInterface):
 
     async def save_file(self, file: UploadFile, save_path: str):
         async with self.session.client(
-                "s3",
-                endpoint_url=self.endpoint_url,
-                aws_session_token=self.aws_session_token,
-                region_name=self.region_name,
-                config=Config(signature_version=self.signature_version),
+            "s3",
+            endpoint_url=self.endpoint_url,
+            aws_session_token=self.aws_session_token,
+            region_name=self.region_name,
+            config=Config(
+                signature_version=self.signature_version,
+                s3={"addressing_style": "virtual"},
+            ),
         ) as s3:
             await s3.put_object(
                 Bucket=self.bucket_name,
@@ -231,10 +253,13 @@ class S3FileStorage(FileStorageInterface):
 
     async def delete_file(self, file_code: FileCodes):
         async with self.session.client(
-                "s3",
-                endpoint_url=self.endpoint_url,
-                region_name=self.region_name,
-                config=Config(signature_version=self.signature_version),
+            "s3",
+            endpoint_url=self.endpoint_url,
+            region_name=self.region_name,
+            config=Config(
+                signature_version=self.signature_version,
+                s3={"addressing_style": "virtual"},
+            ),
         ) as s3:
             await s3.delete_object(
                 Bucket=self.bucket_name, Key=await file_code.get_file_path()
@@ -244,10 +269,13 @@ class S3FileStorage(FileStorageInterface):
         try:
             filename = file_code.prefix + file_code.suffix
             async with self.session.client(
-                    "s3",
-                    endpoint_url=self.endpoint_url,
-                    region_name=self.region_name,
-                    config=Config(signature_version=self.signature_version),
+                "s3",
+                endpoint_url=self.endpoint_url,
+                region_name=self.region_name,
+                config=Config(
+                    signature_version=self.signature_version,
+                    s3={"addressing_style": "virtual"},
+                ),
             ) as s3:
                 link = await s3.generate_presigned_url(
                     "get_object",
@@ -280,11 +308,17 @@ class S3FileStorage(FileStorageInterface):
         if self.proxy:
             return await get_file_url(file_code.code)
         else:
+            if self.s3_cdn_url and len(self.s3_cdn_url) > 0:
+                from urllib.parse import urljoin
+                return urljoin(self.s3_cdn_url.rstrip('/') + '/', await file_code.get_file_path())
             async with self.session.client(
-                    "s3",
-                    endpoint_url=self.endpoint_url,
-                    region_name=self.region_name,
-                    config=Config(signature_version=self.signature_version),
+                "s3",
+                endpoint_url=self.endpoint_url,
+                region_name=self.region_name,
+                config=Config(
+                    signature_version=self.signature_version,
+                    s3={"addressing_style": "virtual"},
+                ),
             ) as s3:
                 result = await s3.generate_presigned_url(
                     "get_object",
@@ -296,61 +330,70 @@ class S3FileStorage(FileStorageInterface):
                 )
                 return result
 
-    async def save_chunk(self, upload_id: str, chunk_index: int, chunk_data: bytes, chunk_hash: str, save_path: str):
-        chunk_key = str(Path(save_path).parent / "chunks" /
-                        upload_id / f"{chunk_index}.part")
-        async with self.session.client('s3') as s3:
+    async def save_chunk(
+        self,
+        upload_id: str,
+        chunk_index: int,
+        chunk_data: bytes,
+        chunk_hash: str,
+        save_path: str,
+    ):
+        chunk_key = str(
+            Path(save_path).parent / "chunks" / upload_id / f"{chunk_index}.part"
+        )
+        async with self.session.client("s3") as s3:
             response = await s3.upload_part(
                 Bucket=self.bucket_name,
                 Key=chunk_key,
                 PartNumber=chunk_index + 1,
                 UploadId=upload_id,
-                Body=chunk_data
+                Body=chunk_data,
             )
             await s3.put_object_tagging(
                 Bucket=self.bucket_name,
                 Key=chunk_key,
                 Tagging={
-                    'TagSet': [
-                        {'Key': 'ChunkHash', 'Value': chunk_hash},
-                        {'Key': 'ETag', 'Value': response['ETag']}
+                    "TagSet": [
+                        {"Key": "ChunkHash", "Value": chunk_hash},
+                        {"Key": "ETag", "Value": response["ETag"]},
                     ]
-                }
+                },
             )
 
-    async def merge_chunks(self, upload_id: str, chunk_info: UploadChunk, save_path: str) -> tuple[str, str]:
+    async def merge_chunks(
+        self, upload_id: str, chunk_info: UploadChunk, save_path: str
+    ) -> tuple[str, str]:
         file_sha256 = hashlib.sha256()
         chunk_dir = str(Path(save_path).parent / "chunks" / upload_id)
-        async with self.session.client('s3') as s3:
+        async with self.session.client("s3") as s3:
             # 获取所有分片
             parts = await s3.list_parts(
-                Bucket=self.bucket_name,
-                Key=chunk_dir,
-                UploadId=upload_id
+                Bucket=self.bucket_name, Key=chunk_dir, UploadId=upload_id
             )
             part_list = []
-            for part in parts['Parts']:
-                part_number = part['PartNumber']
+            for part in parts["Parts"]:
+                part_number = part["PartNumber"]
                 chunk_index = part_number - 1
-                chunk_record = await UploadChunk.get(upload_id=upload_id, chunk_index=chunk_index)
+                chunk_record = await UploadChunk.get(
+                    upload_id=upload_id, chunk_index=chunk_index
+                )
                 response = await s3.get_object(
                     Bucket=self.bucket_name,
                     Key=f"{chunk_dir}/{chunk_index}.part",
-                    PartNumber=part_number
+                    PartNumber=part_number,
                 )
-                chunk_data = await response['Body'].read()
+                chunk_data = await response["Body"].read()
                 current_hash = hashlib.sha256(chunk_data).hexdigest()
                 if current_hash != chunk_record.chunk_hash:
                     raise Exception(f"分片{chunk_index}哈希不匹配")
                 file_sha256.update(chunk_data)
-                part_list.append(
-                    {'PartNumber': part_number, 'ETag': part['ETag']})
+                part_list.append({"PartNumber": part_number, "ETag": part["ETag"]})
             # 完成合并
             await s3.complete_multipart_upload(
                 Bucket=self.bucket_name,
                 Key=save_path,
                 UploadId=upload_id,
-                MultipartUpload={'Parts': part_list}
+                MultipartUpload={"Parts": part_list},
             )
         return save_path, file_sha256.hexdigest()
 
@@ -361,13 +404,11 @@ class S3FileStorage(FileStorageInterface):
         :param save_path: 文件保存路径
         """
         chunk_dir = str(Path(save_path).parent / "chunks" / upload_id)
-        async with self.session.client('s3') as s3:
+        async with self.session.client("s3") as s3:
             try:
                 # 终止未完成的分片上传会话
                 await s3.abort_multipart_upload(
-                    Bucket=self.bucket_name,
-                    Key=chunk_dir,
-                    UploadId=upload_id
+                    Bucket=self.bucket_name, Key=chunk_dir, UploadId=upload_id
                 )
             except Exception as e:
                 # 如果上传会话不存在或其他错误，忽略
@@ -376,14 +417,12 @@ class S3FileStorage(FileStorageInterface):
             try:
                 # 清理已上传的分片数据
                 parts = await s3.list_parts(
-                    Bucket=self.bucket_name,
-                    Key=chunk_dir,
-                    UploadId=upload_id
+                    Bucket=self.bucket_name, Key=chunk_dir, UploadId=upload_id
                 )
-                for part in parts.get('Parts', []):
+                for part in parts.get("Parts", []):
                     await s3.delete_object(
                         Bucket=self.bucket_name,
-                        Key=f"{chunk_dir}/{part['PartNumber'] - 1}.part"
+                        Key=f"{chunk_dir}/{part['PartNumber'] - 1}.part",
                     )
             except Exception as e:
                 # 如果分片数据不存在或其他错误，忽略
@@ -419,8 +458,7 @@ class OneDriveFileStorage(FileStorageInterface):
             if e.code == "itemNotFound":
                 client.me.drive.root.create_folder(settings.onedrive_root_path)
                 self.root_path = (
-                    client.me.drive.root.get_by_path(
-                        settings.onedrive_root_path)
+                    client.me.drive.root.get_by_path(settings.onedrive_root_path)
                     .get()
                     .execute_query()
                 )
@@ -485,8 +523,7 @@ class OneDriveFileStorage(FileStorageInterface):
         expiration_datetime = datetime.datetime.now(
             tz=datetime.timezone.utc
         ) + datetime.timedelta(hours=1)
-        expiration_datetime = expiration_datetime.strftime(
-            "%Y-%m-%dT%H:%M:%SZ")
+        expiration_datetime = expiration_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
         permission = remote_file.create_link(
             "view", "anonymous", expiration_datetime=expiration_datetime
         ).execute_query()
@@ -555,8 +592,7 @@ class OpenDALFileStorage(FileStorageInterface):
         try:
             filename = file_code.prefix + file_code.suffix
             content = await self.operator.read(await file_code.get_file_path())
-            headers = {
-                "Content-Disposition": f'attachment; filename="{filename}"'}
+            headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
             return Response(
                 content, headers=headers, media_type="application/octet-stream"
             )
@@ -648,8 +684,7 @@ class WebDAVFileStorage(FileStorageInterface):
             async with aiohttp.ClientSession(auth=self.auth) as session:
                 content = await file.read()
                 async with session.put(
-                        url, data=content, headers={
-                            "Content-Type": file.content_type}
+                    url, data=content, headers={"Content-Type": file.content_type}
                 ) as resp:
                     if resp.status not in (200, 201, 204):
                         content = await resp.text()
@@ -658,8 +693,7 @@ class WebDAVFileStorage(FileStorageInterface):
                             detail=f"文件上传失败: {content[:200]}",
                         )
         except aiohttp.ClientError as e:
-            raise HTTPException(
-                status_code=503, detail=f"WebDAV连接异常: {str(e)}")
+            raise HTTPException(status_code=503, detail=f"WebDAV连接异常: {str(e)}")
 
     async def delete_file(self, file_code: FileCodes):
         """删除WebDAV文件及空目录"""
@@ -680,8 +714,7 @@ class WebDAVFileStorage(FileStorageInterface):
                 await self._delete_empty_dirs(file_path, session)
 
         except aiohttp.ClientError as e:
-            raise HTTPException(
-                status_code=503, detail=f"WebDAV连接异常: {str(e)}")
+            raise HTTPException(status_code=503, detail=f"WebDAV连接异常: {str(e)}")
 
     async def get_file_url(self, file_code: FileCodes):
         return await get_file_url(file_code.code)
@@ -691,9 +724,11 @@ class WebDAVFileStorage(FileStorageInterface):
         try:
             filename = file_code.prefix + file_code.suffix
             url = self._build_url(await file_code.get_file_path())
-            async with aiohttp.ClientSession(headers={
-                "Authorization": f"Basic {base64.b64encode(f'{settings.webdav_username}:{settings.webdav_password}'.encode()).decode()}"
-            }) as session:
+            async with aiohttp.ClientSession(
+                headers={
+                    "Authorization": f"Basic {base64.b64encode(f'{settings.webdav_username}:{settings.webdav_password}'.encode()).decode()}"
+                }
+            ) as session:
                 async with session.get(url) as resp:
                     if resp.status != 200:
                         raise HTTPException(
@@ -712,17 +747,24 @@ class WebDAVFileStorage(FileStorageInterface):
                         },
                     )
         except aiohttp.ClientError as e:
-            raise HTTPException(
-                status_code=503, detail=f"WebDAV连接异常: {str(e)}")
+            raise HTTPException(status_code=503, detail=f"WebDAV连接异常: {str(e)}")
 
-    async def save_chunk(self, upload_id: str, chunk_index: int, chunk_data: bytes, chunk_hash: str, save_path: str):
-        chunk_path = str(Path(save_path).parent / "chunks" / upload_id / f"{chunk_index}.part")
+    async def save_chunk(
+        self,
+        upload_id: str,
+        chunk_index: int,
+        chunk_data: bytes,
+        chunk_hash: str,
+        save_path: str,
+    ):
+        chunk_path = str(
+            Path(save_path).parent / "chunks" / upload_id / f"{chunk_index}.part"
+        )
         chunk_url = self._build_url(chunk_path)
         async with aiohttp.ClientSession(auth=self.auth) as session:
             await session.put(chunk_url, data=chunk_data)
             propfind_url = self._build_url(chunk_path)
-            headers = {
-                'Content-Type': 'application/xml; charset=utf-8', 'Depth': '0'}
+            headers = {"Content-Type": "application/xml; charset=utf-8", "Depth": "0"}
             body = f"""
                 <D:propertyupdate xmlns:D="DAV:">
                     <D:set>
@@ -732,20 +774,24 @@ class WebDAVFileStorage(FileStorageInterface):
                     </D:set>
                 </D:propertyupdate>
             """
-            await session.request('PROPPATCH', propfind_url, headers=headers, data=body)
+            await session.request("PROPPATCH", propfind_url, headers=headers, data=body)
 
-    async def merge_chunks(self, upload_id: str, chunk_info: UploadChunk, save_path: str) -> tuple[str, str]:
+    async def merge_chunks(
+        self, upload_id: str, chunk_info: UploadChunk, save_path: str
+    ) -> tuple[str, str]:
         file_sha256 = hashlib.sha256()
         output_url = self._build_url(save_path)
         chunk_dir = str(Path(save_path).parent / "chunks" / upload_id)
         async with aiohttp.ClientSession(auth=self.auth) as session:
-            await session.put(output_url, headers={'Content-Length': '0'})
+            await session.put(output_url, headers={"Content-Length": "0"})
             for i in range(chunk_info.total_chunks):
                 chunk_path = f"{chunk_dir}/{i}.part"
                 chunk_url = self._build_url(chunk_path)
                 propfind_url = self._build_url(chunk_path)
                 headers = {
-                    'Content-Type': 'application/xml; charset=utf-8', 'Depth': '0'}
+                    "Content-Type": "application/xml; charset=utf-8",
+                    "Depth": "0",
+                }
                 body = """
                     <D:propfind xmlns:D="DAV:">
                         <D:prop>
@@ -753,18 +799,26 @@ class WebDAVFileStorage(FileStorageInterface):
                         </D:prop>
                     </D:propfind>
                 """
-                async with session.request('PROPFIND', propfind_url, headers=headers, data=body) as resp:
+                async with session.request(
+                    "PROPFIND", propfind_url, headers=headers, data=body
+                ) as resp:
                     xml_data = await resp.text()
                     chunk_hash = re.search(
-                        r'<ChunkHash[^>]*>([^<]+)</ChunkHash>', xml_data).group(1)
+                        r"<ChunkHash[^>]*>([^<]+)</ChunkHash>", xml_data
+                    ).group(1)
                 file_sha256.update(bytes.fromhex(chunk_hash))
                 async with session.get(chunk_url) as resp:
                     chunk_data = await resp.read()
-                    await session.request('PATCH', output_url, headers={
-                        'Content-Type': 'application/octet-stream',
-                        'Content-Length': str(len(chunk_data)),
-                        'Content-Range': f'bytes */{chunk_info.file_size}'
-                    }, data=chunk_data)
+                    await session.request(
+                        "PATCH",
+                        output_url,
+                        headers={
+                            "Content-Type": "application/octet-stream",
+                            "Content-Length": str(len(chunk_data)),
+                            "Content-Range": f"bytes */{chunk_info.file_size}",
+                        },
+                        data=chunk_data,
+                    )
         return save_path, file_sha256.hexdigest()
 
     async def clean_chunks(self, upload_id: str, save_path: str):
@@ -778,12 +832,13 @@ class WebDAVFileStorage(FileStorageInterface):
         async with aiohttp.ClientSession(auth=self.auth) as session:
             try:
                 # 检查分片目录是否存在
-                async with session.request("PROPFIND", chunk_dir_url, headers={"Depth": "1"}) as resp:
+                async with session.request(
+                    "PROPFIND", chunk_dir_url, headers={"Depth": "1"}
+                ) as resp:
                     if resp.status == 207:  # 207 表示 Multi-Status
                         # 获取目录下的所有分片文件
                         xml_data = await resp.text()
-                        file_paths = re.findall(
-                            r'<D:href>(.*?)</D:href>', xml_data)
+                        file_paths = re.findall(r"<D:href>(.*?)</D:href>", xml_data)
                         for file_path in file_paths:
                             if file_path.endswith(".part"):
                                 # 删除分片文件
