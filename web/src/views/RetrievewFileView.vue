@@ -24,7 +24,7 @@
           <form @submit.prevent="handleSubmit">
             <div class="mb-6 relative">
               <label for="code" class="block text-sm font-medium mb-2"
-                :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']">取件码</label>
+                :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']">粮票号</label>
               <div class="relative">
                 <input id="code" v-model="code" type="text"
                   class="w-full px-4 py-3 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 pr-10"
@@ -32,7 +32,7 @@
                     isDarkMode ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-100',
                     { 'ring-2 ring-red-500': error },
                     isDarkMode ? 'text-gray-300' : 'text-gray-800'
-                  ]" placeholder="请输入5位取件码" required :readonly="inputStatus.readonly" maxlength="5"
+                  ]" placeholder="请输入5位粮票号" required :readonly="inputStatus.readonly" maxlength="5"
                   @focus="isInputFocused = true" @blur="isInputFocused = false" />
                 <div v-if="inputStatus.loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
                   <span class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-500"></span>
@@ -63,7 +63,8 @@
         </div>
         <div class="px-8 py-4 bg-opacity-50 flex justify-between items-center"
           :class="[isDarkMode ? 'bg-gray-800' : 'bg-gray-100']">
-          <span class="text-sm flex items-center" :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']">
+          <span class="text-sm flex items-center" :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']"
+            style="opacity: 0;pointer-events: none;">
             <ShieldCheckIcon class="w-4 h-4 mr-1 text-green-400" />
             安全加密
           </span>
@@ -96,7 +97,10 @@
               class="bg-opacity-50 rounded-lg p-4 flex items-center shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-102"
               :class="[isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-white']">
               <div class="flex-shrink-0 mr-4">
-                <FileIcon class="w-10 h-10" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
+                <FileIcon v-if="record.type !== 'text'" class="w-10 h-10"
+                  :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
+                <TextIcon v-if="record.type === 'text'" class="w-5 h-5 sm:w-6 sm:h-6"
+                  :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
               </div>
               <div class="flex-grow min-w-0 mr-4">
                 <p class="font-medium text-lg truncate" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
@@ -146,10 +150,10 @@
               : 'bg-white bg-opacity-95'
           ]">
           <h3 class="text-2xl font-bold mb-6 truncate" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
-            粮食详情
+            领粮详情
           </h3>
           <div class="space-y-4">
-            <div class="flex items-center">
+            <div class="flex items-center" v-if="selectedRecord.type !== 'text'">
               <FileIcon class="w-6 h-6 mr-3 flex-shrink-0"
                 :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
               <p :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']" class="truncate flex-grow">
@@ -160,30 +164,30 @@
               <CalendarIcon class="w-6 h-6 mr-3 flex-shrink-0"
                 :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
               <p :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']" class="truncate flex-grow">
-                <span class="font-medium">取件日期：</span>{{ selectedRecord.date }}
+                <span class="font-medium">投喂日期：</span>{{ selectedRecord.date }}
               </p>
             </div>
             <div class="flex items-center">
               <HardDriveIcon class="w-6 h-6 mr-3 flex-shrink-0"
                 :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
               <p :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']" class="truncate flex-grow">
-                <span class="font-medium">文件大小：</span>{{ selectedRecord.size }}
+                <span class="font-medium">投喂大小：</span>{{ selectedRecord.size }}
               </p>
             </div>
             <div class="flex items-center">
               <DownloadIcon class="w-6 h-6 mr-3" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
               <p :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']">
-                <span class="font-medium">文件内容：</span>
+                <span class="font-medium">{{ selectedRecord.type === "text" ? "文本内容：" : "文件内容：" }}</span>
               </p>
               <div v-if="selectedRecord.filename == 'Text'" class="ml-2">
                 <button @click="showContentPreview"
-                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">
+                  class="px-2 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">
                   预览内容
                 </button>
               </div>
               <div v-else>
                 <a :href="getDownloadUrl(selectedRecord)" target="_blank" rel="noopener noreferrer"
-                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">
+                  class="px-2 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">
                   点击下载
                 </a>
               </div>
@@ -192,13 +196,13 @@
 
           <div class="mt-6 flex flex-col items-center">
             <h4 class="text-lg font-semibold mb-3" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
-              取件二维码
+              领粮二维码
             </h4>
             <div class="bg-white p-2 rounded-lg shadow-sm">
               <QRCode :value="getQRCodeValue(selectedRecord)" :size="128" level="M" />
             </div>
             <p class="mt-2 text-sm" :class="[isDarkMode ? 'text-gray-400' : 'text-gray-600']">
-              扫描二维码快速取件
+              扫描二维码快速领粮
             </p>
           </div>
 
@@ -265,6 +269,7 @@ import {
   XIcon,
   TrashIcon,
   FileIcon,
+  TextIcon,
   CalendarIcon,
   HardDriveIcon,
   DownloadIcon,
@@ -300,6 +305,7 @@ const route = useRoute()
 
 // 使用 receiveData 替代原来的 records
 const records = receiveData
+console.log(records)
 const config = JSON.parse(localStorage.getItem('config') || '{}')
 
 onMounted(() => {
@@ -332,7 +338,7 @@ const copyContent = async () => {
 }
 const handleSubmit = async () => {
   if (code.value.length !== 5) {
-    alertStore.showAlert('请输入5位取件码', 'error')
+    alertStore.showAlert('请输入5位粮票号', 'error')
     return
   }
 
@@ -350,6 +356,7 @@ const handleSubmit = async () => {
         const newFileData = {
           id: Date.now(),
           code: res.detail.code,
+          type: res.detail.type,
           filename: res.detail.name,
           size: formatFileSize(res.detail.size),
           downloadUrl: isFile ? res.detail.text : null,
@@ -375,14 +382,14 @@ const handleSubmit = async () => {
         }
         alertStore.showAlert('文件获取成功', 'success')
       } else {
-        alertStore.showAlert('无效的取件码', 'error')
+        alertStore.showAlert('无效的粮票号', 'error')
       }
     } else {
       alertStore.showAlert(res.detail || '获取文件失败', 'error')
     }
   } catch (err) {
-    console.error('取件失败:', err)
-    alertStore.showAlert('取件失败，请稍后重试', 'error')
+    console.error('领粮失败:', err)
+    alertStore.showAlert('领粮失败，请稍后重试', 'error')
   } finally {
     inputStatus.value.readonly = false
     inputStatus.value.loading = false

@@ -171,6 +171,9 @@ async def update_file(
         update_data["expired_at"] = data.expired_at
     if data.expired_count is not None and data.expired_count != file_code.expired_count:
         update_data["expired_count"] = data.expired_count
+    if data.text is not None and data.text != file_code.text:
+        update_data["text"] = data.text
+
 
     await file_code.update_from_dict(update_data).save()
     return APIResponse(detail="更新成功")

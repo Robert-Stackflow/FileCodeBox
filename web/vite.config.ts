@@ -20,5 +20,6 @@ export default defineConfig({
   },
   build: {
     outDir: '../themes/2025',
-  },
+    emptyOutDir: true
+  }
 })

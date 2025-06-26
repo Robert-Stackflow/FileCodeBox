@@ -182,7 +182,8 @@
 
       <div class="px-8 py-4 bg-opacity-50 flex justify-between items-center"
         :class="[isDarkMode ? 'bg-gray-800' : 'bg-gray-100']">
-        <span class="text-sm flex items-center" :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']">
+        <span class="text-sm flex items-center" :class="[isDarkMode ? 'text-gray-300' : 'text-gray-800']"
+          style="opacity: 0;pointer-events: none;">
           <ShieldCheckIcon class="w-4 h-4 mr-1 text-green-400" />
           安全加密
         </span>
@@ -215,7 +216,10 @@
               class="bg-opacity-50 rounded-lg p-4 flex items-center shadow-sm hover:shadow-lg transition duration-300 transform hover:scale-102"
               :class="[isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-white']">
               <div class="flex-shrink-0 mr-4">
-                <FileIcon class="w-10 h-10" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
+                <FileIcon v-if="record.type !== 'text'" class="w-10 h-10"
+                  :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
+                <TextIcon v-if="record.type === 'text'" class="w-10 h-10"
+                  :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
               </div>
               <div class="flex-grow min-w-0 mr-4">
                 <p class="font-medium text-lg truncate" :class="[isDarkMode ? 'text-white' : 'text-gray-800']">
@@ -315,17 +319,17 @@
               </div>
             </div>
 
-            <!-- 取件码和二维码区域 -->
+            <!-- 粮票号和二维码区域 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <!-- 左侧取件码 -->
+              <!-- 左侧粮票号 -->
               <div class="space-y-4 sm:space-y-4">
                 <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 sm:p-5 text-white"
                   :class="{ 'w-full': selectedRecord.type !== 'file' }">
                   <div class="flex items-center justify-between mb-3 sm:mb-4">
-                    <h4 class="font-medium text-sm sm:text-base">取件码</h4>
+                    <h4 class="font-medium text-sm sm:text-base">粮票号</h4>
                     <button @click="copyRetrieveCode(selectedRecord.retrieveCode)"
                       class="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors">
-                      <ClipboardCopyIcon class="w-4 h-4 sm:w-5 sm:h-5" name="点击复制取件码" />
+                      <ClipboardCopyIcon class="w-4 h-4 sm:w-5 sm:h-5" name="点击复制粮票号" />
                     </button>
                   </div>
                   <p class="text-2xl sm:text-3xl font-bold tracking-wider text-center break-all">
@@ -364,7 +368,7 @@
                 </div>
                 <p class="text-xs sm:text-sm truncate max-w-full"
                   :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-                  扫描二维码快速取件
+                  扫描二维码快速领粮
                 </p>
               </div>
             </div>
@@ -374,7 +378,7 @@
           <div class="px-4 sm:px-6 py-3 sm:py-4 border-t" :class="[isDarkMode ? 'border-gray-800' : 'border-gray-100']">
             <button @click="copyRetrieveLink(selectedRecord.retrieveCode)"
               class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors">
-              复制取件链接
+              复制领粮链接
             </button>
           </div>
         </div>
@@ -426,7 +430,7 @@ import { useAlertStore } from '@/stores/alertStore'
 
 const alertStore = useAlertStore()
 const sendRecords = computed(() => fileDataStore.shareData)
-
+console.log(sendRecords)
 const fileHash = ref('')
 
 const triggerFileUpload = () => {
@@ -787,14 +791,14 @@ const handleSubmit = async () => {
       fileDataStore.addShareData(newRecord)
 
       // 显示发送成功消息
-      alertStore.showAlert(`文件发送成功！取件码：${retrieveCode}`, 'success')
+      alertStore.showAlert(`文件发送成功！粮票号：${retrieveCode}`, 'success')
       // 重置表单 - 只重置文件和文本内容,保留过期信息
       selectedFile.value = null
       textContent.value = ''
       uploadProgress.value = 0
       // 显示详情
       selectedRecord.value = newRecord
-      // 自动复制取件码链接
+      // 自动复制粮票号链接
       await copyRetrieveLink(retrieveCode)
     } else {
       throw new Error('服务器响应异常')

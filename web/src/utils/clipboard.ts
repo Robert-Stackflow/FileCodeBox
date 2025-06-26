@@ -56,27 +56,27 @@ export const copyToClipboard = async (
 }
 
 /**
- * 生成并复制取件链接
- * @param code 取件码
+ * 生成并复制领粮链接
+ * @param code 粮票号
  * @returns Promise<boolean> 是否复制成功
  */
 export const copyRetrieveLink = async (code: string): Promise<boolean> => {
   const link = `${window.location.origin}/#/?code=${code}`
   return copyToClipboard(link, {
-    successMsg: '取件链接已复制到剪贴板',
-    errorMsg: '复制失败，请手动复制取件链接'
+    successMsg: '领粮链接已复制到剪贴板',
+    errorMsg: '复制失败，请手动复制领粮链接'
   })
 }
 
 /**
- * 复制取件码
- * @param code 取件码
+ * 复制粮票号
+ * @param code 粮票号
  * @returns Promise<boolean> 是否复制成功
  */
 export const copyRetrieveCode = async (code: string): Promise<boolean> => {
   return copyToClipboard(code, {
-    successMsg: '取件码已复制到剪贴板',
-    errorMsg: '复制失败，请手动复制取件码'
+    successMsg: '粮票号已复制到剪贴板',
+    errorMsg: '复制失败，请手动复制粮票号'
   })
 }
 

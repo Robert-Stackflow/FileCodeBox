@@ -14,7 +14,7 @@ DEFAULT_CONFIG = {
     "file_storage": "local",
     "storage_path": "share/data",
     "name": "Chewie Transfer",
-    "description": "开箱即用的文件快传系统",
+    "description": "属于Chewie的文件投喂小站",
     "notify_title": "系统通知",
     "notify_content": '欢迎使用Chewie Transfer，本网站构建自开源项目 <a href="https://github.com/vastsa/FileCodeBox" target="_blank">Github</a> ，欢迎Star和Fork。',
     "page_explain": "请勿上传或分享违法内容。根据《中华人民共和国网络安全法》、《中华人民共和国刑法》、《中华人民共和国治安管理处罚法》等相关规定。 传播或存储违法、违规内容，会受到相关处罚，严重者将承担刑事责任。本站坚决配合相关部门，确保网络内容的安全，和谐，打造绿色网络环境。",

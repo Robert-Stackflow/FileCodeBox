@@ -26,5 +26,6 @@ class UpdateFileData(BaseModel):
     code: Optional[str] = None
     prefix: Optional[str] = None
     suffix: Optional[str] = None
+    text: Optional[str] = None
     expired_at: Optional[datetime.datetime] = None
     expired_count: Optional[int] = None

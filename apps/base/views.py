@@ -7,7 +7,12 @@ from starlette import status
 from apps.admin.dependencies import share_required_login
 from apps.base.models import FileCodes, UploadChunk
 from apps.base.schemas import SelectFileModel, InitChunkUploadModel, CompleteUploadModel
-from apps.base.utils import get_expire_info, get_file_path_name, ip_limit, get_chunk_file_path_name
+from apps.base.utils import (
+    get_expire_info,
+    get_file_path_name,
+    ip_limit,
+    get_chunk_file_path_name,
+)
 from core.response import APIResponse
 from core.settings import settings
 from core.storage import storages, FileStorageInterface
@@ -30,10 +35,10 @@ async def create_file_code(code, **kwargs):
 
 @share_api.post("/text/", dependencies=[Depends(share_required_login)])
 async def share_text(
-        text: str = Form(...),
-        expire_value: int = Form(default=1, gt=0),
-        expire_style: str = Form(default="day"),
-        ip: str = Depends(ip_limit["upload"]),
+    text: str = Form(...),
+    expire_value: int = Form(default=1, gt=0),
+    expire_style: str = Form(default="day"),
+    ip: str = Depends(ip_limit["upload"]),
 ):
     text_size = len(text.encode("utf-8"))
     max_txt_size = 222 * 1024
@@ -58,10 +63,10 @@ async def share_text(
 
 @share_api.post("/file/", dependencies=[Depends(share_required_login)])
 async def share_file(
-        expire_value: int = Form(default=1, gt=0),
-        expire_style: str = Form(default="day"),
-        file: UploadFile = File(...),
-        ip: str = Depends(ip_limit["upload"]),
+    expire_value: int = Form(default=1, gt=0),
+    expire_style: str = Form(default="day"),
+    file: UploadFile = File(...),
+    ip: str = Depends(ip_limit["upload"]),
 ):
     await validate_file_size(file, settings.uploadSize)
 
@@ -134,6 +139,7 @@ async def select_file(data: SelectFileModel, ip: str = Depends(ip_limit["error"]
             "code": file_code.code,
             "name": file_code.prefix + file_code.suffix,
             "size": file_code.size,
+            "type": "text" if file_code.text else "file",
             "text": (
                 file_code.text
                 if file_code.text is not None
@@ -192,23 +198,27 @@ async def init_chunk_upload(data: InitChunkUploadModel):
     )
     # 获取已上传的分片列表
     uploaded_chunks = await UploadChunk.filter(
-        upload_id=upload_id,
-        completed=True
-    ).values_list('chunk_index', flat=True)
-    return APIResponse(detail={
-        "existed": False,
-        "upload_id": upload_id,
-        "chunk_size": data.chunk_size,
-        "total_chunks": total_chunks,
-        "uploaded_chunks": uploaded_chunks
-    })
+        upload_id=upload_id, completed=True
+    ).values_list("chunk_index", flat=True)
+    return APIResponse(
+        detail={
+            "existed": False,
+            "upload_id": upload_id,
+            "chunk_size": data.chunk_size,
+            "total_chunks": total_chunks,
+            "uploaded_chunks": uploaded_chunks,
+        }
+    )
 
 
-@chunk_api.post("/upload/chunk/{upload_id}/{chunk_index}", dependencies=[Depends(share_required_login)])
+@chunk_api.post(
+    "/upload/chunk/{upload_id}/{chunk_index}",
+    dependencies=[Depends(share_required_login)],
+)
 async def upload_chunk(
-        upload_id: str,
-        chunk_index: int,
-        chunk: UploadFile = File(...),
+    upload_id: str,
+    chunk_index: int,
+    chunk: UploadFile = File(...),
 ):
     # 获取上传会话信息
     chunk_info = await UploadChunk.filter(upload_id=upload_id, chunk_index=-1).first()
@@ -228,24 +238,30 @@ async def upload_chunk(
         upload_id=upload_id,
         chunk_index=chunk_index,
         defaults={
-            'chunk_hash': chunk_hash,
-            'completed': True,
-            'file_size': chunk_info.file_size,
-            'total_chunks': chunk_info.total_chunks,
-            'chunk_size': chunk_info.chunk_size,
-            'file_name': chunk_info.file_name
-        }
+            "chunk_hash": chunk_hash,
+            "completed": True,
+            "file_size": chunk_info.file_size,
+            "total_chunks": chunk_info.total_chunks,
+            "chunk_size": chunk_info.chunk_size,
+            "file_name": chunk_info.file_name,
+        },
     )
     # 获取文件路径
-    _, _, _, _, save_path = await get_chunk_file_path_name(chunk_info.file_name, upload_id)
+    _, _, _, _, save_path = await get_chunk_file_path_name(
+        chunk_info.file_name, upload_id
+    )
     # 保存分片到存储
     storage = storages[settings.file_storage]()
     await storage.save_chunk(upload_id, chunk_index, chunk_data, chunk_hash, save_path)
     return APIResponse(detail={"chunk_hash": chunk_hash})
 
 
-@chunk_api.post("/upload/complete/{upload_id}", dependencies=[Depends(share_required_login)])
-async def complete_upload(upload_id: str, data: CompleteUploadModel, ip: str = Depends(ip_limit["upload"])):
+@chunk_api.post(
+    "/upload/complete/{upload_id}", dependencies=[Depends(share_required_login)]
+)
+async def complete_upload(
+    upload_id: str, data: CompleteUploadModel, ip: str = Depends(ip_limit["upload"])
+):
     # 获取上传基本信息
     chunk_info = await UploadChunk.filter(upload_id=upload_id, chunk_index=-1).first()
     if not chunk_info:
@@ -254,17 +270,20 @@ async def complete_upload(upload_id: str, data: CompleteUploadModel, ip: str = D
     storage = storages[settings.file_storage]()
     # 验证所有分片
     completed_chunks = await UploadChunk.filter(
-        upload_id=upload_id,
-        completed=True
+        upload_id=upload_id, completed=True
     ).count()
     if completed_chunks != chunk_info.total_chunks:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="分片不完整")
     # 获取文件路径
-    path, suffix, prefix, _, save_path = await get_chunk_file_path_name(chunk_info.file_name, upload_id)
+    path, suffix, prefix, _, save_path = await get_chunk_file_path_name(
+        chunk_info.file_name, upload_id
+    )
     # 合并文件并计算哈希
     await storage.merge_chunks(upload_id, chunk_info, save_path)
     # 创建文件记录
-    expired_at, expired_count, used_count, code = await get_expire_info(data.expire_value, data.expire_style)
+    expired_at, expired_count, used_count, code = await get_expire_info(
+        data.expire_value, data.expire_style
+    )
     await FileCodes.create(
         code=code,
         file_hash=chunk_info.chunk_hash,
@@ -277,7 +296,7 @@ async def complete_upload(upload_id: str, data: CompleteUploadModel, ip: str = D
         file_path=path,
         uuid_file_name=f"{prefix}{suffix}",
         prefix=prefix,
-        suffix=suffix
+        suffix=suffix,
     )
     # 清理临时文件
     await storage.clean_chunks(upload_id, save_path)

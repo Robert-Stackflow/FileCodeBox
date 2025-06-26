@@ -64,7 +64,9 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center group relative">
-                  <FileIcon class="w-5 h-5 mr-2 flex-shrink-0"
+                  <FileIcon class="w-5 h-5 mr-2 flex-shrink-0" v-if="isFile(file)"
+                    :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-500']" />
+                  <TextIcon class="w-5 h-5 mr-2 flex-shrink-0" v-if="!isFile(file)"
                     :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-500']" />
                   <span class="font-medium truncate max-w-[200px]"
                     :class="[isDarkMode ? 'text-white' : 'text-gray-900']" :title="file.prefix">
@@ -83,6 +85,12 @@
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                   :class="[isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800']">
                   {{ Math.round((file.size / 1024 / 1024) * 100) / 100 }}MB
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="[isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800']">
+                  {{ file.used_count }}次
                 </span>
               </td>
               <td class="px-6 py-4">
@@ -216,7 +224,7 @@
                     <PencilIcon class="w-5 h-5" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
                   </div>
                   <h3 class="text-xl font-semibold leading-6" :class="[isDarkMode ? 'text-white' : 'text-gray-900']">
-                    编辑文件信息
+                    {{ editForm.text==null?"编辑文件信息":"编辑文信息" }}
                   </h3>
                 </div>
                 <!-- 优化的关闭按钮 -->
@@ -232,11 +240,11 @@
             <!-- 表单内容 -->
             <div class="px-6 py-5">
               <div class="grid gap-6">
-                <!-- 取件码 -->
+                <!-- 粮票号 -->
                 <div class="space-y-2 group">
                   <label class="text-sm font-medium flex items-center space-x-2 transition-colors duration-200"
                     :class="[isDarkMode ? 'text-gray-300 group-focus-within:text-indigo-400' : 'text-gray-700 group-focus-within:text-indigo-600']">
-                    <span>取件码</span>
+                    <span>粮票号</span>
                     <div class="h-px flex-1 transition-colors duration-200"
                       :class="[isDarkMode ? 'bg-gray-700 group-focus-within:bg-indigo-500/50' : 'bg-gray-200 group-focus-within:bg-indigo-500/30']">
                     </div>
@@ -248,7 +256,7 @@
                         isDarkMode
                           ? 'bg-gray-700/50 text-white placeholder-gray-400 focus:ring-indigo-500/50'
                           : 'bg-gray-50 text-gray-900 placeholder-gray-400 focus:ring-indigo-500'
-                      ]" placeholder="输入取件码">
+                      ]" placeholder="输入粮票号">
                     <div
                       class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within:opacity-100">
                       <CheckIcon class="w-5 h-5" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
@@ -257,7 +265,7 @@
                 </div>
 
                 <!-- 文件名称 -->
-                <div class="space-y-2 group">
+                <div class="space-y-2 group" v-if="editForm.text==null">
                   <label class="text-sm font-medium flex items-center space-x-2 transition-colors duration-200"
                     :class="[isDarkMode ? 'text-gray-300 group-focus-within:text-indigo-400' : 'text-gray-700 group-focus-within:text-indigo-600']">
                     <span>文件名称</span>
@@ -281,7 +289,7 @@
                 </div>
 
                 <!-- 文件后缀 -->
-                <div class="space-y-2 group">
+                <div class="space-y-2 group" v-if="editForm.text==null">
                   <label class="text-sm font-medium flex items-center space-x-2 transition-colors duration-200"
                     :class="[isDarkMode ? 'text-gray-300 group-focus-within:text-indigo-400' : 'text-gray-700 group-focus-within:text-indigo-600']">
                     <span>文件后缀</span>
@@ -297,6 +305,30 @@
                           ? 'bg-gray-700/50 text-white placeholder-gray-400 focus:ring-indigo-500/50'
                           : 'bg-gray-50 text-gray-900 placeholder-gray-400 focus:ring-indigo-500'
                       ]" placeholder="输入文件后缀">
+                    <div
+                      class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within:opacity-100">
+                      <CheckIcon class="w-5 h-5" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 文本内容 -->
+                <div class="space-y-2 group" v-if="editForm.text!=null">
+                  <label class="text-sm font-medium flex items-center space-x-2 transition-colors duration-200"
+                    :class="[isDarkMode ? 'text-gray-300 group-focus-within:text-indigo-400' : 'text-gray-700 group-focus-within:text-indigo-600']">
+                    <span>文本内容</span>
+                    <div class="h-px flex-1 transition-colors duration-200"
+                      :class="[isDarkMode ? 'bg-gray-700 group-focus-within:bg-indigo-500/50' : 'bg-gray-200 group-focus-within:bg-indigo-500/30']">
+                    </div>
+                  </label>
+                  <div class="relative rounded-lg shadow-sm">
+                    <textarea rows="4" v-model="editForm.text"
+                      class="block w-full rounded-lg border-0 py-2.5 pl-4 pr-10 transition-all duration-200 focus:ring-2 focus:ring-inset sm:text-sm"
+                      :class="[
+                        isDarkMode
+                          ? 'bg-gray-700/50 text-white placeholder-gray-400 focus:ring-indigo-500/50'
+                          : 'bg-gray-50 text-gray-900 placeholder-gray-400 focus:ring-indigo-500'
+                      ]" placeholder="输入文本内容"></textarea>
                     <div
                       class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within:opacity-100">
                       <CheckIcon class="w-5 h-5" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
@@ -384,6 +416,7 @@ import { inject, ref, computed } from 'vue'
 import api from '@/utils/api'
 import {
   FileIcon,
+  TextIcon,
   SearchIcon,
   TrashIcon,
   ChevronLeftIcon,
@@ -408,7 +441,7 @@ const isDarkMode = inject('isDarkMode')
 const tableData: any = ref([])
 const alertStore = useAlertStore()
 // 修改文件表头
-const fileTableHeaders = ['取件码', '名称', '大小', '描述', '过期时间', '操作']
+const fileTableHeaders = ['粮票号', '名称', '大小','使用次数', '描述', '过期时间', '操作']
 
 // 分页参数
 const params = ref({
@@ -425,6 +458,7 @@ const editForm = ref({
   code: '',
   prefix: '',
   suffix: '',
+  text:null,
   expired_at: '',
   expired_count: null
 })
@@ -436,6 +470,7 @@ const openEditModal = (file: any) => {
     code: file.code,
     prefix: file.prefix,
     suffix: file.suffix,
+    text:file.text,
     expired_at: file.expired_at ? file.expired_at.slice(0, 16) : '', // 格式化日期时间
     expired_count: file.expired_count
   }
@@ -450,6 +485,7 @@ const closeEditModal = () => {
     code: '',
     prefix: '',
     suffix: '',
+    text:null,
     expired_at: '',
     expired_count: null
   }
@@ -547,6 +583,10 @@ const loadFiles = async () => {
   } catch (error) {
     console.error('加载文件列表失败:', error)
   }
+}
+
+const isFile=(row:any)=>{
+  return row.text==null;
 }
 
 // 页码改变处理函数
