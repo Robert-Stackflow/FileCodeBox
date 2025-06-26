@@ -1,9 +1,13 @@
 version: "3"
 services:
   file-code-box:
-    image: lanol/filecodebox:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ruida/filecodebox:latest
+    container_name: filecodebox
     volumes:
-      - ./data:/app/data:rw
+      - /root/apps/.filecodebox:/app/data:rw
     restart: unless-stopped
     ports:
-      - "12345:12345"
+      - "3006:12345"

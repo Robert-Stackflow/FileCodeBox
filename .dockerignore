@@ -1,3 +1,6 @@
 *.md
 .idea
 .git
+data
+.github
+web

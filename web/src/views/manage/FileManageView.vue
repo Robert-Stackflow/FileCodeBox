@@ -224,7 +224,7 @@
                     <PencilIcon class="w-5 h-5" :class="[isDarkMode ? 'text-indigo-400' : 'text-indigo-600']" />
                   </div>
                   <h3 class="text-xl font-semibold leading-6" :class="[isDarkMode ? 'text-white' : 'text-gray-900']">
-                    {{ editForm.text==null?"编辑文件信息":"编辑文信息" }}
+                    {{ editForm.text==null?"编辑文件信息":"编辑文本信息" }}
                   </h3>
                 </div>
                 <!-- 优化的关闭按钮 -->
